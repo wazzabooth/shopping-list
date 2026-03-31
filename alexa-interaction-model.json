@@ -1,0 +1,60 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "shopping list",
+      "intents": [
+        {
+          "name": "AddItemIntent",
+          "slots": [
+            {
+              "name": "quantity",
+              "type": "AMAZON.NUMBER"
+            },
+            {
+              "name": "item",
+              "type": "AMAZON.Food"
+            }
+          ],
+          "samples": [
+            "add {item}",
+            "add {item} to my list",
+            "add {item} to my shopping list",
+            "add {quantity} {item}",
+            "add {quantity} {item} to my list",
+            "add {quantity} {item} to my shopping list",
+            "I need {item}",
+            "I need {quantity} {item}",
+            "put {item} on my list",
+            "put {quantity} {item} on my list"
+          ]
+        },
+        {
+          "name": "ReadListIntent",
+          "slots": [],
+          "samples": [
+            "what's on my list",
+            "what's on my shopping list",
+            "read my list",
+            "read my shopping list",
+            "what do I need",
+            "what do I need to get",
+            "tell me my list",
+            "list everything"
+          ]
+        },
+        {
+          "name": "AMAZON.HelpIntent"
+        },
+        {
+          "name": "AMAZON.CancelIntent"
+        },
+        {
+          "name": "AMAZON.StopIntent"
+        },
+        {
+          "name": "AMAZON.NavigateHomeIntent"
+        }
+      ]
+    }
+  }
+}

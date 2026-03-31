@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0f0f0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="My Shop">
+<title>My Shop</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@700&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0f0f0f;--surface:#1a1a1a;--surface2:#222;--border:#2a2a2a;--text:#f0ede8;--muted:#555;--accent:#e8642a;--accent2:#2a7a4e;--checked:#161616;--checked-tx:#3a3a3a;--radius:14px;--shadow:0 2px 12px rgba(0,0,0,0.4)}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{height:100%;background:var(--bg)}
+  body{min-height:100%;font-family:'Nunito',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;padding-bottom:calc(80px + env(safe-area-inset-bottom));user-select:none}
+  .app{max-width:460px;margin:0 auto}
+
+  /* ── Screens ── */
+  .screen{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px}
+  .screen-logo{font-size:3rem;margin-bottom:8px}
+  .screen-title{font-family:'Bitter',serif;font-size:1.8rem;font-weight:700;margin-bottom:4px;text-align:center}
+  .screen-sub{font-size:0.85rem;color:var(--muted);margin-bottom:28px;text-align:center;line-height:1.5}
+  .card{background:var(--surface);border:1.5px solid var(--border);border-radius:20px;padding:24px;width:100%;max-width:360px;display:flex;flex-direction:column;gap:14px}
+  .auth-input{background:var(--bg);border:1.5px solid var(--border);border-radius:11px;padding:14px 16px;font-family:'Nunito',sans-serif;font-size:1rem;color:var(--text);outline:none;transition:border-color 0.15s;-webkit-appearance:none;width:100%}
+  .auth-input:focus{border-color:var(--accent)}
+  .auth-input::placeholder{color:var(--muted)}
+  .btn-primary{background:var(--accent);color:white;border:none;border-radius:11px;padding:14px;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;transition:opacity 0.15s,transform 0.1s;width:100%;-webkit-tap-highlight-color:transparent}
+  .btn-primary:active{transform:scale(0.97);opacity:0.85}
+  .err{color:#e05a3a;font-size:0.82rem;text-align:center;min-height:18px}
+  .hint{font-size:0.78rem;color:var(--muted);text-align:center}
+
+  /* ── Header ── */
+  .header{background:var(--bg);border-bottom:1px solid var(--border);padding:20px 20px 16px;position:sticky;top:0;z-index:20}
+  .header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .logo{display:flex;align-items:center;gap:10px}
+  .logo-icon{width:34px;height:34px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px}
+  h1{font-family:'Bitter',serif;font-size:1.35rem;font-weight:700;letter-spacing:-0.02em}
+  .header-actions{display:flex;align-items:center;gap:6px}
+  .count{font-size:0.75rem;font-weight:600;color:var(--muted);background:var(--surface);padding:4px 10px;border-radius:999px;border:1px solid var(--border)}
+  .btn-icon-sm{background:none;border:1.5px solid var(--border);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:0.95rem;transition:all 0.15s;-webkit-tap-highlight-color:transparent}
+  .btn-icon-sm:active{border-color:var(--accent);color:var(--accent)}
+
+  /* ── Add form ── */
+  .add-form{display:flex;gap:8px}
+  .input-wrap{flex:1;position:relative;display:flex}
+  .input{background:var(--surface);border:1.5px solid var(--border);border-radius:11px;padding:12px 44px 12px 14px;font-family:'Nunito',sans-serif;font-size:0.95rem;color:var(--text);outline:none;transition:border-color 0.15s;-webkit-appearance:none;width:100%}
+  .input:focus{border-color:var(--accent)}
+  .input::placeholder{color:var(--muted)}
+  .btn-voice{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;transition:color 0.15s;-webkit-tap-highlight-color:transparent;font-size:1rem}
+  .btn-voice.listening{color:var(--accent);animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+  .btn-add{background:var(--accent);color:white;border:none;border-radius:11px;padding:12px 20px;font-family:'Nunito',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;transition:transform 0.1s,opacity 0.15s;white-space:nowrap;-webkit-tap-highlight-color:transparent;flex-shrink:0}
+  .btn-add:active{transform:scale(0.96);opacity:0.85}
+  .actions{display:flex;justify-content:flex-end;padding:10px 20px 4px}
+  .btn-clear{background:none;border:1.5px solid var(--border);border-radius:999px;padding:5px 14px;font-family:'Nunito',sans-serif;font-size:0.75rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all 0.15s;-webkit-tap-highlight-color:transparent}
+  .btn-clear:active{border-color:var(--accent);color:var(--accent)}
+  .list{padding:8px 16px;display:flex;flex-direction:column;gap:6px}
+
+  /* ── Items ── */
+  .item-wrap{position:relative;overflow:hidden;border-radius:var(--radius)}
+  .swipe-bg{position:absolute;right:0;top:0;bottom:0;width:80px;background:#c0392b;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;border-radius:var(--radius);z-index:0}
+  .item{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);-webkit-tap-highlight-color:transparent;animation:fadeUp 0.18s ease both;position:relative;z-index:1;transition:transform 0.05s linear;touch-action:pan-y}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+  .item.checked{background:var(--checked);border-color:var(--border);box-shadow:none}
+  .item.drag-over{border-color:var(--accent)}
+  .drag-handle{color:var(--muted);font-size:0.9rem;cursor:grab;padding:4px;flex-shrink:0;touch-action:none}
+  .item-emoji{width:40px;height:40px;border-radius:10px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;transition:opacity 0.2s}
+  .item.checked .item-emoji{opacity:0.3}
+  .check{width:22px;height:22px;border-radius:7px;border:2px solid var(--border);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;-webkit-tap-highlight-color:transparent}
+  .check svg{opacity:0;transition:opacity 0.15s;width:10px;height:10px}
+  .item.checked .check{background:var(--muted);border-color:var(--muted)}
+  .item.checked .check svg{opacity:1}
+  .item-body{flex:1;min-width:0}
+  .item-name{font-size:0.93rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item.checked .item-name{text-decoration:line-through;color:var(--checked-tx)}
+  .item-qty{font-size:0.7rem;color:var(--muted);font-weight:600;margin-top:2px}
+  .item-del{background:none;border:none;width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);flex-shrink:0;font-size:0.85rem;-webkit-tap-highlight-color:transparent;transition:color 0.15s}
+  @media(hover:hover){.item-del{opacity:0}.item:hover .item-del{opacity:1}.item-del:hover{color:var(--accent)}}
+  @media(hover:none){.item-del{opacity:0}}
+  .item-name-input{background:var(--bg);border:1.5px solid var(--accent);border-radius:7px;padding:2px 8px;font-family:'Nunito',sans-serif;font-size:0.93rem;color:var(--text);width:100%;outline:none;user-select:text}
+  .divider{display:flex;align-items:center;gap:10px;padding:10px 4px 6px;color:var(--muted);font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase}
+  .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+  .empty{text-align:center;padding:60px 24px;color:var(--muted)}
+  .empty-icon{font-size:2.8rem;margin-bottom:12px;display:block}
+  .empty p{font-size:0.88rem;line-height:1.6}
+
+  /* ── Admin Panel ── */
+  .admin-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:50;opacity:0;pointer-events:none;transition:opacity 0.2s}
+  .admin-overlay.open{opacity:1;pointer-events:all}
+  .admin-panel{position:fixed;top:0;right:0;bottom:0;width:min(400px,100vw);background:var(--surface);border-left:1.5px solid var(--border);z-index:51;transform:translateX(100%);transition:transform 0.25s ease;overflow-y:auto;display:flex;flex-direction:column}
+  .admin-panel.open{transform:translateX(0)}
+  .admin-header{padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1}
+  .admin-title{font-family:'Bitter',serif;font-size:1.1rem;font-weight:700}
+  .admin-body{padding:20px;display:flex;flex-direction:column;gap:24px;flex:1}
+  .admin-section{display:flex;flex-direction:column;gap:12px}
+  .admin-section-title{font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);padding-bottom:4px;border-bottom:1px solid var(--border)}
+  .admin-input{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-family:'Nunito',sans-serif;font-size:0.88rem;color:var(--text);outline:none;transition:border-color 0.15s;width:100%;-webkit-appearance:none}
+  .admin-input:focus{border-color:var(--accent)}
+  .admin-input::placeholder{color:var(--muted)}
+  .btn-admin{background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:10px 16px;font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:600;color:var(--text);cursor:pointer;transition:all 0.15s;-webkit-tap-highlight-color:transparent;width:100%;text-align:left}
+  .btn-admin:active{border-color:var(--accent);color:var(--accent)}
+  .btn-admin.danger:active{border-color:#e05a3a;color:#e05a3a}
+  .btn-admin.success{border-color:var(--accent2);color:var(--accent2)}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .stat-card{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+  .stat-val{font-family:'Bitter',serif;font-size:1.6rem;font-weight:700;color:var(--accent)}
+  .stat-lbl{font-size:0.7rem;color:var(--muted);margin-top:2px}
+  .share-url{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:0.78rem;color:var(--muted);word-break:break-all;line-height:1.5}
+  .ha-status{display:flex;align-items:center;gap:8px;font-size:0.82rem;color:var(--muted)}
+  .ha-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0}
+  .ha-dot.connected{background:#4caf7d}
+
+  /* ── Toast ── */
+  .toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(12px);background:var(--text);color:#111;padding:9px 18px;border-radius:999px;font-size:0.8rem;font-weight:700;pointer-events:none;opacity:0;transition:opacity 0.2s,transform 0.2s;z-index:200;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div class="screen" id="login-screen">
+  <div class="screen-logo">🛒</div>
+  <div class="screen-title">My Shop</div>
+  <div class="screen-sub">Sign in to your shopping list</div>
+  <div class="card">
+    <input class="auth-input" type="text"     id="login-user" placeholder="Username" autocomplete="username" autocorrect="off" autocapitalize="none">
+    <input class="auth-input" type="password" id="login-pass" placeholder="Password" autocomplete="current-password">
+    <div class="err" id="login-err"></div>
+    <button class="btn-primary" id="login-btn">Sign in</button>
+  </div>
+</div>
+
+<!-- Change Credentials Screen -->
+<div class="screen" id="change-screen" style="display:none">
+  <div class="screen-logo">👋</div>
+  <div class="screen-title">Welcome!</div>
+  <div class="screen-sub">Please set your own username and password<br>before getting started.</div>
+  <div class="card">
+    <input class="auth-input" type="text"     id="new-user"  placeholder="Choose a username" autocomplete="username" autocorrect="off" autocapitalize="none">
+    <input class="auth-input" type="password" id="new-pass"  placeholder="Choose a password (min 4 chars)" autocomplete="new-password">
+    <input class="auth-input" type="password" id="new-pass2" placeholder="Confirm password" autocomplete="new-password">
+    <div class="err" id="change-err"></div>
+    <button class="btn-primary" id="change-btn">Save &amp; continue</button>
+    <div class="hint">You can change these from the admin panel later</div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div class="app" id="main-app" style="display:none">
+  <header class="header">
+    <div class="header-top">
+      <div class="logo">
+        <div class="logo-icon">🛒</div>
+        <h1>My Shop</h1>
+      </div>
+      <div class="header-actions">
+        <button class="btn-icon-sm" id="btn-share" title="Share link">🔗</button>
+        <button class="btn-icon-sm" id="btn-admin" title="Admin">⚙️</button>
+        <button class="btn-icon-sm" id="btn-logout" title="Lock">🔒</button>
+        <span class="count" id="count">0 items</span>
+      </div>
+    </div>
+    <div class="add-form">
+      <div class="input-wrap">
+        <input class="input" id="item-input" type="text" placeholder="Add an item…" autocomplete="off" autocorrect="off" autocapitalize="words">
+        <button class="btn-voice" id="btn-voice">🎤</button>
+      </div>
+      <button class="btn-add" id="add-btn">Add</button>
+    </div>
+  </header>
+  <div class="actions">
+    <button class="btn-clear" id="clear-btn" style="display:none">Clear checked ✓</button>
+  </div>
+  <div class="list" id="list"></div>
+</div>
+
+<!-- Admin Overlay -->
+<div class="admin-overlay" id="admin-overlay"></div>
+
+<!-- Admin Panel -->
+<div class="admin-panel" id="admin-panel">
+  <div class="admin-header">
+    <span class="admin-title">⚙️ Admin</span>
+    <button class="btn-icon-sm" id="admin-close">✕</button>
+  </div>
+  <div class="admin-body">
+
+    <!-- Stats -->
+    <div class="admin-section">
+      <div class="admin-section-title">Stats</div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-val" id="stat-added">—</div><div class="stat-lbl">Items added</div></div>
+        <div class="stat-card"><div class="stat-val" id="stat-cleared">—</div><div class="stat-lbl">Items cleared</div></div>
+      </div>
+      <div style="font-size:0.75rem;color:var(--muted)" id="stat-last"></div>
+    </div>
+
+    <!-- Share Link -->
+    <div class="admin-section">
+      <div class="admin-section-title">Share Link (Sarah)</div>
+      <div class="share-url" id="share-url-display" style="display:none"></div>
+      <button class="btn-admin" id="btn-gen-share">🔗 Generate share link</button>
+      <button class="btn-admin" id="btn-copy-share" style="display:none">📋 Copy link</button>
+      <button class="btn-admin danger" id="btn-revoke-share" style="display:none">🗑️ Revoke link</button>
+      <div style="font-size:0.75rem;color:var(--muted)">Anyone with this link can view and edit the list without logging in.</div>
+    </div>
+
+    <!-- Change Password -->
+    <div class="admin-section">
+      <div class="admin-section-title">Change Credentials</div>
+      <input class="admin-input" type="text"     id="admin-new-user" placeholder="New username" autocorrect="off" autocapitalize="none">
+      <input class="admin-input" type="password" id="admin-new-pass" placeholder="New password (min 4 chars)">
+      <input class="admin-input" type="password" id="admin-new-pass2" placeholder="Confirm password">
+      <div class="err" id="admin-cred-err"></div>
+      <button class="btn-admin" id="admin-save-creds">💾 Save credentials</button>
+    </div>
+
+    <!-- Home Assistant -->
+    <div class="admin-section">
+      <div class="admin-section-title">Home Assistant</div>
+      <div class="ha-status"><div class="ha-dot" id="ha-dot"></div><span id="ha-status-text">Not configured</span></div>
+      <input class="admin-input" type="url"  id="ha-url"     placeholder="http://homeassistant.local:8123">
+      <input class="admin-input" type="text" id="ha-token"   placeholder="Long-lived access token">
+      <input class="admin-input" type="text" id="ha-service" placeholder="Notify service (default: notify)">
+      <button class="btn-admin" id="btn-save-ha">💾 Save HA config</button>
+      <button class="btn-admin" id="btn-test-ha">🔔 Send test notification</button>
+      <div style="font-size:0.75rem;color:var(--muted);line-height:1.5">
+        Get your token from HA → Profile → Long-Lived Access Tokens.<br>
+        To add items from HA automations use:<br>
+        <code style="font-size:0.7rem;color:var(--accent)">POST /ha/add</code> with header <code style="font-size:0.7rem;color:var(--accent)">x-share-token</code>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Emoji map ─────────────────────────────────────────────────────────────────
+const EMOJI_MAP=[
+  [/wine|merlot|cabernet|chardonnay|ros[eé]|pinot|shiraz|rioja|prosecco|champagne|cava|claret/i,'🍷'],
+  [/beer|ale|lager|stout|porter|ipa|bitter|pint|corona|heineken|guinness|stella/i,'🍺'],
+  [/cider/i,'🍺'],[/whisky|whiskey|bourbon|scotch|rum|gin|vodka|tequila|brandy|cognac|spirit/i,'🥃'],
+  [/coffee|espresso|latte|cappuccino|americano|flat white|nescafe/i,'☕'],
+  [/tea|herbal|chamomile|earl grey|green tea|black tea/i,'🍵'],
+  [/milk|semi.skimmed|skimmed|whole milk|oat milk|almond milk/i,'🥛'],
+  [/juice/i,'🧃'],[/water|sparkling/i,'💧'],
+  [/cola|coke|pepsi|fanta|sprite|lemonade|fizzy|soda|lucozade|red bull|monster/i,'🥤'],
+  [/smoothie/i,'🥤'],[/apple/i,'🍎'],[/banana/i,'🍌'],[/orange/i,'🍊'],
+  [/lemon/i,'🍋'],[/lime/i,'🍋'],[/grape/i,'🍇'],[/strawberr/i,'🍓'],
+  [/raspberry|raspberries/i,'🫐'],[/blueberr/i,'🫐'],[/cherry|cherries/i,'🍒'],
+  [/peach/i,'🍑'],[/pear/i,'🍐'],[/mango/i,'🥭'],[/pineapple/i,'🍍'],
+  [/watermelon/i,'🍉'],[/melon/i,'🍈'],[/kiwi/i,'🥝'],[/coconut/i,'🥥'],
+  [/avocado/i,'🥑'],[/tomato/i,'🍅'],[/carrot/i,'🥕'],[/broccoli/i,'🥦'],
+  [/lettuce|salad|rocket|spinach|kale|cabbage/i,'🥬'],[/cucumber/i,'🥒'],
+  [/pepper|capsicum/i,'🫑'],[/corn|sweetcorn/i,'🌽'],[/sweet potato/i,'🍠'],
+  [/potato|potatoes|spud/i,'🥔'],[/onion/i,'🧅'],[/garlic/i,'🧄'],
+  [/mushroom/i,'🍄'],[/aubergine|eggplant/i,'🍆'],[/pea|bean|chickpea|lentil/i,'🫘'],
+  [/chicken|turkey|duck|poultry/i,'🍗'],[/beef|steak|mince|burger|brisket/i,'🥩'],
+  [/pork|bacon|ham|sausage|chorizo|salami|pepperoni/i,'🥓'],[/lamb|mutton/i,'🍖'],
+  [/fish|salmon|tuna|cod|haddock|sea bass|trout|mackerel|sardine/i,'🐟'],
+  [/prawn|shrimp|lobster|crab|scallop|mussel/i,'🦐'],[/egg/i,'🥚'],
+  [/cheese|cheddar|brie|camembert|gouda|parmesan|mozzarella|feta/i,'🧀'],
+  [/butter|margarine/i,'🧈'],[/cream|creme fraiche|sour cream/i,'🫙'],[/yogurt|yoghurt/i,'🥛'],
+  [/bread|loaf|baguette|ciabatta|sourdough|pitta|naan|bagel|roll|bun/i,'🍞'],
+  [/croissant/i,'🥐'],[/cake|cupcake|muffin|brownie/i,'🎂'],
+  [/biscuit|cookie|digestive/i,'🍪'],[/doughnut|donut/i,'🍩'],
+  [/waffle/i,'🧇'],[/pancake/i,'🥞'],[/pastry/i,'🥐'],[/pie/i,'🥧'],
+  [/ketchup|tomato sauce/i,'🍅'],[/mayo|mayonnaise/i,'🫙'],[/oil/i,'🫙'],
+  [/salt/i,'🧂'],[/sugar/i,'🍬'],[/honey/i,'🍯'],[/jam|marmalade/i,'🍯'],
+  [/peanut butter|nutella|chocolate spread/i,'🫙'],
+  [/cereal|granola|porridge|oats/i,'🥣'],[/rice/i,'🍚'],
+  [/pasta|spaghetti|penne|linguine|fusilli/i,'🍝'],[/noodle/i,'🍜'],
+  [/flour/i,'🌾'],[/chocolate|cocoa/i,'🍫'],[/crisp|chips|pringles/i,'🥔'],
+  [/popcorn/i,'🍿'],[/nut|almond|cashew|walnut|pistachio/i,'🥜'],
+  [/soup/i,'🥣'],[/pizza/i,'🍕'],[/ice cream|gelato|sorbet/i,'🍦'],[/frozen/i,'🧊'],
+  [/toilet|loo roll|tissue/i,'🧻'],[/washing.up|fairy|dish soap/i,'🧴'],
+  [/bleach|cleaner|cleaning|detergent|laundry/i,'🧹'],[/bin bag/i,'🗑️'],
+  [/kitchen roll/i,'🧻'],[/sponge/i,'🧽'],[/candle/i,'🕯️'],[/batteries/i,'🔋'],
+  [/shampoo|conditioner/i,'🧴'],[/soap|hand wash/i,'🧼'],[/toothpaste|toothbrush/i,'🪥'],
+  [/deodorant/i,'🧴'],[/razor/i,'🪒'],[/nappy|diaper/i,'👶'],
+  [/dog food|cat food|pet food/i,'🐾'],[/flower|tulip|rose|lily/i,'💐'],[/plant/i,'🪴'],
+];
+function getEmoji(name){for(const[re,e]of EMOJI_MAP)if(re.test(name))return e;return'🛍️'}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let token = localStorage.getItem('shop_token');
+let shareToken = null;
+let items = [], dragSrcId = null;
+
+// ── Check for share token in URL ──────────────────────────────────────────────
+const urlParams = new URLSearchParams(window.location.search);
+const urlShareToken = urlParams.get('share');
+if (urlShareToken) {
+  shareToken = urlShareToken;
+  localStorage.setItem('shop_share_token', urlShareToken);
+} else {
+  shareToken = localStorage.getItem('shop_share_token');
+}
+
+// ── API ───────────────────────────────────────────────────────────────────────
+async function api(method, path, body, noAuth) {
+  const headers = {'Content-Type':'application/json'};
+  if (!noAuth) {
+    if (shareToken) headers['x-share-token'] = shareToken;
+    else if (token) headers['Authorization'] = 'Bearer ' + token;
+  }
+  const res = await fetch(path, {method, headers, body: body ? JSON.stringify(body) : undefined});
+  if (res.status === 401 && !shareToken) { logout(); return null; }
+  return res.ok ? res.json() : Promise.reject(await res.text());
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+async function init() {
+  // Share token access — skip login
+  if (shareToken) {
+    try { await loadItems(); showApp(); return; }
+    catch(e) { shareToken = null; localStorage.removeItem('shop_share_token'); }
+  }
+  if (token) {
+    try { await loadItems(); showApp(); return; }
+    catch(e) { token = null; localStorage.removeItem('shop_token'); }
+  }
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+function showApp() {
+  document.getElementById('login-screen').style.display  = 'none';
+  document.getElementById('change-screen').style.display = 'none';
+  document.getElementById('main-app').style.display      = 'block';
+  // Hide admin button for share token users
+  if (shareToken && !token) document.getElementById('btn-admin').style.display = 'none';
+  loadItems();
+}
+
+function logout() {
+  token = null; shareToken = null;
+  localStorage.removeItem('shop_token');
+  localStorage.removeItem('shop_share_token');
+  location.href = '/';
+}
+
+// Login
+document.getElementById('login-btn').addEventListener('click', doLogin);
+document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+async function doLogin() {
+  const username = document.getElementById('login-user').value.trim();
+  const password = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-err');
+  err.textContent = '';
+  if (!username || !password) { err.textContent = 'Enter username and password'; return; }
+  try {
+    const res = await api('POST', '/auth/login', { username, password }, true);
+    token = res.token;
+    localStorage.setItem('shop_token', token);
+    if (res.firstLogin) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('change-screen').style.display = 'flex';
+    } else { showApp(); }
+  } catch(e) { err.textContent = 'Wrong username or password'; }
+}
+
+// Change credentials
+document.getElementById('change-btn').addEventListener('click', doChange);
+document.getElementById('new-pass2').addEventListener('keydown', e => { if (e.key === 'Enter') doChange(); });
+
+async function doChange() {
+  const username = document.getElementById('new-user').value.trim();
+  const password = document.getElementById('new-pass').value;
+  const password2 = document.getElementById('new-pass2').value;
+  const err = document.getElementById('change-err');
+  err.textContent = '';
+  if (!username) { err.textContent = 'Username is required'; return; }
+  if (password.length < 4) { err.textContent = 'Password must be at least 4 characters'; return; }
+  if (password !== password2) { err.textContent = 'Passwords do not match'; return; }
+  try {
+    await api('POST', '/auth/change-credentials', { username, password });
+    showToast('All set! Welcome 🎉');
+    showApp();
+  } catch(e) { err.textContent = 'Failed — try again'; }
+}
+
+document.getElementById('btn-logout').addEventListener('click', () => {
+  if (confirm('Lock the app?')) logout();
+});
+
+// ── Admin Panel ───────────────────────────────────────────────────────────────
+function openAdmin() {
+  document.getElementById('admin-overlay').classList.add('open');
+  document.getElementById('admin-panel').classList.add('open');
+  loadAdminData();
+}
+function closeAdmin() {
+  document.getElementById('admin-overlay').classList.remove('open');
+  document.getElementById('admin-panel').classList.remove('open');
+}
+
+document.getElementById('btn-admin').addEventListener('click', openAdmin);
+document.getElementById('admin-close').addEventListener('click', closeAdmin);
+document.getElementById('admin-overlay').addEventListener('click', closeAdmin);
+
+async function loadAdminData() {
+  try {
+    const data = await api('GET', '/admin/stats');
+    if (!data) return;
+
+    // Stats
+    document.getElementById('stat-added').textContent   = data.totalAdded;
+    document.getElementById('stat-cleared').textContent = data.totalCleared;
+    const last = data.lastAdded ? `Last added: ${new Date(data.lastAdded).toLocaleDateString('en-GB', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}` : '';
+    document.getElementById('stat-last').textContent = last;
+
+    // Share token
+    if (data.shareToken) {
+      const url = `${window.location.origin}?share=${data.shareToken}`;
+      document.getElementById('share-url-display').textContent = url;
+      document.getElementById('share-url-display').style.display = 'block';
+      document.getElementById('btn-copy-share').style.display   = 'block';
+      document.getElementById('btn-revoke-share').style.display = 'block';
+      document.getElementById('btn-gen-share').textContent = '🔄 Regenerate link';
+    } else {
+      document.getElementById('share-url-display').style.display = 'none';
+      document.getElementById('btn-copy-share').style.display    = 'none';
+      document.getElementById('btn-revoke-share').style.display  = 'none';
+      document.getElementById('btn-gen-share').textContent = '🔗 Generate share link';
+    }
+
+    // HA status
+    const haConfigured = data.ha?.configured;
+    document.getElementById('ha-dot').className = 'ha-dot' + (haConfigured ? ' connected' : '');
+    document.getElementById('ha-status-text').textContent = haConfigured ? 'Connected' : 'Not configured';
+    if (data.ha?.url) document.getElementById('ha-url').value = data.ha.url;
+    if (data.ha?.notifyService) document.getElementById('ha-service').value = data.ha.notifyService;
+
+  } catch(e) { console.error('Admin load error', e); }
+}
+
+// Share token
+document.getElementById('btn-gen-share').addEventListener('click', async () => {
+  const res = await api('POST', '/admin/share-token', {});
+  if (res) { showToast('Share link generated!'); loadAdminData(); }
+});
+
+document.getElementById('btn-copy-share').addEventListener('click', async () => {
+  const url = document.getElementById('share-url-display').textContent;
+  try {
+    if (navigator.share) await navigator.share({ title: 'My Shop', url });
+    else { await navigator.clipboard.writeText(url); showToast('Link copied!'); }
+  } catch(e) { showToast('Link: ' + url); }
+});
+
+document.getElementById('btn-revoke-share').addEventListener('click', async () => {
+  if (!confirm('Revoke the share link? Sarah will lose access.')) return;
+  await api('DELETE', '/admin/share-token');
+  showToast('Share link revoked');
+  loadAdminData();
+});
+
+// Change credentials from admin
+document.getElementById('admin-save-creds').addEventListener('click', async () => {
+  const username = document.getElementById('admin-new-user').value.trim();
+  const password = document.getElementById('admin-new-pass').value;
+  const password2 = document.getElementById('admin-new-pass2').value;
+  const err = document.getElementById('admin-cred-err');
+  err.textContent = '';
+  if (!username) { err.textContent = 'Username required'; return; }
+  if (password.length < 4) { err.textContent = 'Min 4 characters'; return; }
+  if (password !== password2) { err.textContent = 'Passwords do not match'; return; }
+  try {
+    await api('POST', '/auth/change-credentials', { username, password });
+    showToast('Credentials updated!');
+    document.getElementById('admin-new-user').value = '';
+    document.getElementById('admin-new-pass').value = '';
+    document.getElementById('admin-new-pass2').value = '';
+  } catch(e) { err.textContent = 'Failed — try again'; }
+});
+
+// HA config
+document.getElementById('btn-save-ha').addEventListener('click', async () => {
+  const url     = document.getElementById('ha-url').value.trim();
+  const haToken = document.getElementById('ha-token').value.trim();
+  const service = document.getElementById('ha-service').value.trim();
+  try {
+    await api('POST', '/admin/ha-config', { url, token: haToken, notifyService: service || 'notify' });
+    showToast('HA config saved!');
+    loadAdminData();
+  } catch(e) { showToast('Failed to save HA config'); }
+});
+
+document.getElementById('btn-test-ha').addEventListener('click', async () => {
+  try {
+    await api('POST', '/admin/ha-test', {});
+    showToast('Test notification sent!');
+  } catch(e) { showToast('Failed — check HA config'); }
+});
+
+// Share button in header
+document.getElementById('btn-share').addEventListener('click', async () => {
+  try {
+    const data = await api('GET', '/admin/stats');
+    if (data?.shareToken) {
+      const url = `${window.location.origin}?share=${data.shareToken}`;
+      if (navigator.share) await navigator.share({ title: 'My Shop', url });
+      else { await navigator.clipboard.writeText(url); showToast('Share link copied!'); }
+    } else {
+      showToast('Generate a share link in admin first');
+      openAdmin();
+    }
+  } catch(e) { showToast('Could not get share link'); }
+});
+
+// ── Items ─────────────────────────────────────────────────────────────────────
+async function loadItems(){const r=await api('GET','/api/items');if(r){items=r;render()}}
+async function addItem(){
+  const name=document.getElementById('item-input').value.trim();if(!name)return;
+  await api('POST','/api/items',{name,quantity:'1',category:'Other'});
+  document.getElementById('item-input').value='';await loadItems();showToast('Added '+titleCase(name));
+}
+async function toggleItem(id,checked){await api('PATCH',`/api/items/${id}`,{checked:!checked});await loadItems()}
+async function deleteItem(id){await api('DELETE',`/api/items/${id}`);await loadItems()}
+async function clearChecked(){await api('DELETE','/api/items/checked/clear');await loadItems();showToast('Cleared')}
+async function renameItem(id,name){if(!name.trim())return loadItems();await api('PATCH',`/api/items/${id}`,{name:name.trim()});await loadItems()}
+async function saveOrder(){
+  const u=items.filter(i=>!i.checked);
+  await api('PUT','/api/items/reorder',{order:u.map((item,i)=>({id:item.id,order:i}))});
+}
+
+function titleCase(s){return s.replace(/\w\S*/g,w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase())}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render(){
+  const list=document.getElementById('list');
+  const countEl=document.getElementById('count');
+  const clearBtn=document.getElementById('clear-btn');
+  const unchk=items.filter(i=>!i.checked),chk=items.filter(i=>i.checked);
+  countEl.textContent=`${unchk.length} item${unchk.length!==1?'s':''}`;
+  clearBtn.style.display=chk.length?'inline-block':'none';
+  list.innerHTML='';
+  if(!items.length){list.innerHTML=`<div class="empty"><span class="empty-icon">🛒</span><p>Your list is empty.<br>Add something above!</p></div>`;return}
+  unchk.forEach(item=>list.appendChild(makeItemWrap(item)));
+  if(chk.length){const div=document.createElement('div');div.className='divider';div.textContent='In the basket';list.appendChild(div);chk.forEach(item=>list.appendChild(makeItemWrap(item)))}
+}
+
+function makeItemWrap(item){
+  const wrap=document.createElement('div');wrap.className='item-wrap';wrap.dataset.id=item.id;
+  const bg=document.createElement('div');bg.className='swipe-bg';bg.innerHTML='🗑️';wrap.appendChild(bg);
+  const el=document.createElement('div');el.className=`item${item.checked?' checked':''}`;el.dataset.id=item.id;
+  el.innerHTML=`
+    <div class="drag-handle">⠿</div>
+    <div class="item-emoji">${getEmoji(item.name)}</div>
+    <div class="check"><svg viewBox="0 0 12 10" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,5 4.5,8.5 11,1"/></svg></div>
+    <div class="item-body">
+      <div class="item-name">${esc(item.name)}</div>
+      ${item.quantity&&item.quantity!=='1'?`<div class="item-qty">× ${esc(item.quantity)}</div>`:''}
+    </div>
+    <button class="item-del">✕</button>`;
+  el.querySelector('.check').addEventListener('click',()=>toggleItem(item.id,item.checked));
+  el.querySelector('.item-name').addEventListener('dblclick',()=>startEdit(el,item));
+  el.querySelector('.item-del').addEventListener('click',()=>deleteItem(item.id));
+  if(!item.checked){
+    el.setAttribute('draggable','true');
+    el.addEventListener('dragstart',e=>{dragSrcId=item.id;el.classList.add('dragging');e.dataTransfer.effectAllowed='move'});
+    el.addEventListener('dragend',()=>{el.classList.remove('dragging');document.querySelectorAll('.drag-over').forEach(x=>x.classList.remove('drag-over'))});
+    el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('drag-over')});
+    el.addEventListener('dragleave',()=>el.classList.remove('drag-over'));
+    el.addEventListener('drop',async e=>{
+      e.preventDefault();el.classList.remove('drag-over');
+      if(dragSrcId&&dragSrcId!==item.id){
+        const u=items.filter(i=>!i.checked);
+        const si=u.findIndex(i=>i.id===dragSrcId),di=u.findIndex(i=>i.id===item.id);
+        if(si!==-1&&di!==-1){const[m]=u.splice(si,1);u.splice(di,0,m);items=[...u,...items.filter(i=>i.checked)];render();await saveOrder()}
+      }
+    });
+    setupTouchDrag(el,item.id);
+  }
+  setupSwipe(wrap,el,item.id);
+  wrap.appendChild(el);
+  return wrap;
+}
+
+function setupSwipe(wrap,el,id){
+  let sx=0,cx=0,sw=false;
+  el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;cx=0;sw=true},{passive:true});
+  el.addEventListener('touchmove',e=>{if(!sw)return;cx=e.touches[0].clientX-sx;if(cx<0)el.style.transform=`translateX(${Math.max(cx,-80)}px)`},{passive:true});
+  el.addEventListener('touchend',()=>{
+    if(!sw)return;sw=false;
+    if(cx<-56){el.style.transform='translateX(-100%)';el.style.transition='transform 0.2s';setTimeout(()=>deleteItem(id),180)}
+    else{el.style.transform='';el.style.transition='transform 0.2s';setTimeout(()=>el.style.transition='',200)}
+  });
+}
+
+function setupTouchDrag(el,id){
+  const handle=el.querySelector('.drag-handle');
+  let dragging=false,clone=null,oY=0;
+  handle.addEventListener('touchstart',e=>{
+    e.stopPropagation();dragging=true;const r=el.getBoundingClientRect();oY=e.touches[0].clientY-r.top;
+    clone=el.cloneNode(true);clone.style.cssText=`position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;opacity:0.85;z-index:999;pointer-events:none;box-shadow:0 8px 30px rgba(0,0,0,0.5)`;
+    document.body.appendChild(clone);el.style.opacity='0.3';
+  },{passive:true});
+  handle.addEventListener('touchmove',e=>{
+    if(!dragging||!clone)return;e.preventDefault();const y=e.touches[0].clientY;clone.style.top=(y-oY)+'px';
+    document.querySelectorAll('.item:not(.checked)').forEach(t=>{t.classList.remove('drag-over');if(t===el)return;const r=t.getBoundingClientRect();if(y>r.top&&y<r.bottom)t.classList.add('drag-over')});
+  },{passive:false});
+  handle.addEventListener('touchend',async()=>{
+    if(!dragging)return;dragging=false;if(clone){clone.remove();clone=null}el.style.opacity='';
+    const over=document.querySelector('.item.drag-over');
+    if(over){over.classList.remove('drag-over');const tid=over.dataset.id;
+      if(tid&&tid!==id){const u=items.filter(i=>!i.checked);const si=u.findIndex(i=>i.id===id),di=u.findIndex(i=>i.id===tid);
+        if(si!==-1&&di!==-1){const[m]=u.splice(si,1);u.splice(di,0,m);items=[...u,...items.filter(i=>i.checked)];render();await saveOrder()}
+      }
+    }
+  });
+}
+
+function startEdit(el,item){
+  const n=el.querySelector('.item-name');const inp=document.createElement('input');
+  inp.className='item-name-input';inp.value=item.name;n.replaceWith(inp);inp.focus();inp.select();
+  inp.addEventListener('blur',()=>renameItem(item.id,inp.value));
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')loadItems()});
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+// ── Voice ─────────────────────────────────────────────────────────────────────
+const voiceBtn=document.getElementById('btn-voice');
+if('webkitSpeechRecognition' in window||'SpeechRecognition' in window){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition,rec=new SR();
+  rec.lang='en-GB';rec.interimResults=false;
+  rec.onresult=e=>{document.getElementById('item-input').value=e.results[0][0].transcript;voiceBtn.classList.remove('listening')};
+  rec.onerror=rec.onend=()=>voiceBtn.classList.remove('listening');
+  voiceBtn.addEventListener('click',()=>{if(voiceBtn.classList.contains('listening')){rec.stop();voiceBtn.classList.remove('listening')}else{rec.start();voiceBtn.classList.add('listening')}});
+}else{voiceBtn.style.display='none'}
+
+// ── Events ────────────────────────────────────────────────────────────────────
+document.getElementById('add-btn').addEventListener('click',addItem);
+document.getElementById('item-input').addEventListener('keydown',e=>{if(e.key==='Enter')addItem()});
+document.getElementById('clear-btn').addEventListener('click',clearChecked);
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+let tt;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2200)}
+
+// ── Poll ──────────────────────────────────────────────────────────────────────
+setInterval(async()=>{
+  if(!token&&!shareToken||document.getElementById('main-app').style.display==='none')return;
+  try{const f=await api('GET','/api/items');if(f&&JSON.stringify(items)!==JSON.stringify(f)){items=f;render()}}catch(e){}
+},5000);
+
+// ── Service worker ────────────────────────────────────────────────────────────
+if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+
+init();
+</script>
+</body>
+</html>
